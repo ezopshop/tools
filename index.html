@@ -385,6 +385,114 @@
     border-color: var(--accent);
   }
 
+  /* ── TABLE RENDERER ── */
+  #table-renderer {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    max-width: 960px;
+    gap: 20px;
+    padding: 40px 20px;
+  }
+
+  .table-toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .table-search {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .table-search:focus { border-color: var(--accent); }
+  .table-search::placeholder { color: var(--muted); }
+
+  .table-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead tr {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  th:hover { color: var(--accent); }
+
+  th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface); }
+
+  td {
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 14px;
+    max-width: 300px;
+  }
+
+  td:first-child { font-weight: 600; }
+
+  .td-empty {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 12px;
+  }
+
+  .table-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
   /* Keyboard hint */
   .keyboard-hints {
     display: flex;
@@ -423,6 +531,20 @@
 
   <!-- ERROR -->
   <div id="error">⚠ Veri yüklenemedi</div>
+
+  <!-- TABLE RENDERER -->
+  <div id="table-renderer">
+    <div class="table-toolbar">
+      <input class="table-search" id="table-search" type="text" placeholder="Ara...">
+      <span class="table-count" id="table-count"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="main-table">
+        <thead id="table-head"></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
 
   <!-- FLASHCARD RENDERER -->
   <div id="flashcard-renderer">
@@ -673,6 +795,74 @@ document.addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════
+// TABLE RENDERER
+// ═══════════════════════════════════════════
+let tableData = [];
+let tableCols = [];
+let tableSortCol = null;
+let tableSortDir = 1;
+
+function initTable(data) {
+  if (!data.length) { showError('Tabloda veri yok'); return; }
+  tableData = data;
+  tableCols = Object.keys(data[0]);
+
+  // Başlık satırı
+  const thead = document.getElementById('table-head');
+  thead.innerHTML = '<tr>' + tableCols.map(col =>
+    `<th onclick="tableSort('${col}')" id="th-${col.replace(/\s/g,'_')}">${col}</th>`
+  ).join('') + '</tr>';
+
+  // Arama
+  document.getElementById('table-search').addEventListener('input', e => {
+    renderTableRows(e.target.value.toLowerCase());
+  });
+
+  renderTableRows('');
+  document.getElementById('table-renderer').style.display = 'flex';
+}
+
+function renderTableRows(search) {
+  let rows = tableData.filter(row =>
+    !search || Object.values(row).some(v => String(v).toLowerCase().includes(search))
+  );
+
+  if (tableSortCol) {
+    rows = rows.slice().sort((a, b) => {
+      const av = a[tableSortCol] ?? '';
+      const bv = b[tableSortCol] ?? '';
+      return String(av).localeCompare(String(bv), 'tr', {numeric: true}) * tableSortDir;
+    });
+  }
+
+  const tbody = document.getElementById('table-body');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="${tableCols.length}" class="table-empty">Sonuç bulunamadı</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(row =>
+      '<tr>' + tableCols.map(col =>
+        `<td>${row[col] ? row[col] : '<span class="td-empty">—</span>'}</td>`
+      ).join('') + '</tr>'
+    ).join('');
+  }
+
+  document.getElementById('table-count').textContent = `${rows.length} kayıt`;
+}
+
+function tableSort(col) {
+  if (tableSortCol === col) { tableSortDir *= -1; }
+  else { tableSortCol = col; tableSortDir = 1; }
+
+  document.querySelectorAll('th').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+  });
+  const thEl = document.getElementById('th-' + col.replace(/\s/g,'_'));
+  if (thEl) thEl.classList.add(tableSortDir === 1 ? 'sort-asc' : 'sort-desc');
+
+  renderTableRows(document.getElementById('table-search').value.toLowerCase());
+}
+
+// ═══════════════════════════════════════════
 // RENDERERS MAP
 // ═══════════════════════════════════════════
 const RENDERERS = {
@@ -680,10 +870,12 @@ const RENDERERS = {
     document.getElementById('flashcard-renderer').style.display = 'flex';
     initFlashcards(data);
   },
-  flashcards1: (data) => {  // registry'de flashcards1 yazıyor
+  flashcards1: (data) => {
     document.getElementById('flashcard-renderer').style.display = 'flex';
     initFlashcards(data);
-  }
+  },
+  table: (data) => initTable(data),
+  table2: (data) => initTable(data),
 };
 
 // ═══════════════════════════════════════════
