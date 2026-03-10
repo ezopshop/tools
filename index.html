@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sheet-to-App</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #666;
+    --card-front: #1e1e1e;
+    --card-back: #1a2a1a;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* HEADER */
+  header {
+    width: 100%;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .tool-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tool-badge {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .tool-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  /* MAIN */
+  main {
+    width: 100%;
+    max-width: 680px;
+    padding: 60px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* LOADING */
+  #loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ERROR */
+  #error {
+    display: none;
+    background: #2a1a1a;
+    border: 1px solid #ff4444;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    color: #ff8888;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    text-align: center;
+    max-width: 400px;
+  }
+
+  /* ── FLASHCARD RENDERER ── */
+  #flashcard-renderer {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 32px;
+  }
+
+  /* Progress */
+  .progress-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* Stats */
+  .stats {
+    display: flex;
+    gap: 24px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stat-num {
+    font-size: 24px;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .stat-num.know { color: var(--accent); }
+  .stat-num.review { color: var(--accent2); }
+  .stat-num.total { color: var(--muted); }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Card */
+  .card-scene {
+    width: 100%;
+    height: 260px;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+
+  .card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-inner.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    border: 1px solid var(--border);
+  }
+
+  .card-front-face {
+    background: var(--card-front);
+  }
+
+  .card-back-face {
+    background: var(--card-back);
+    transform: rotateY(180deg);
+    border-color: #2a3a2a;
+  }
+
+  .card-word {
+    font-size: 42px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+
+  .card-hint {
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .card-translation {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--accent);
+    text-align: center;
+  }
+
+  .card-notes {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    text-align: center;
+  }
+
+  .card-category {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    background: var(--bg);
+    padding: 4px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .flip-hint {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Buttons */
+  .btn-group {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn-know {
+    background: var(--accent);
+    color: #0f0f0f;
+  }
+
+  .btn-know:hover { background: #d4e83f; }
+
+  .btn-review {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-review:hover { background: #222; border-color: var(--accent2); color: var(--accent2); }
+
+  .btn-reset {
+    flex: 0;
+    padding: 16px 20px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .btn-reset:hover { color: var(--text); border-color: var(--muted); }
+
+  /* Completion */
+  .completion {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+    padding: 40px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    width: 100%;
+  }
+
+  .completion-emoji {
+    font-size: 48px;
+  }
+
+  .completion-title {
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  .completion-sub {
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  /* Category filter */
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--accent);
+    color: #0f0f0f;
+    border-color: var(--accent);
+  }
+
+  /* Keyboard hint */
+  .keyboard-hints {
+    display: flex;
+    gap: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .key {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Sheet▸App</div>
+  <div class="tool-info">
+    <span class="tool-badge" id="tool-type-badge">...</span>
+    <span class="tool-title" id="tool-title">Yükleniyor</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- LOADING -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <span>Veri yükleniyor...</span>
+  </div>
+
+  <!-- ERROR -->
+  <div id="error">⚠ Veri yüklenemedi</div>
+
+  <!-- FLASHCARD RENDERER -->
+  <div id="flashcard-renderer">
+
+    <!-- Filters -->
+    <div class="filters" id="category-filters"></div>
+
+    <!-- Progress -->
+    <div style="width:100%">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="progress-text" id="progress-text"></div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-num know" id="stat-know">0</span>
+        <span class="stat-label">Biliyorum</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num review" id="stat-review">0</span>
+        <span class="stat-label">Tekrar</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num total" id="stat-total">0</span>
+        <span class="stat-label">Toplam</span>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="card-scene" id="card-scene" onclick="flipCard()">
+      <div class="card-inner" id="card-inner">
+        <div class="card-face card-front-face">
+          <span class="card-category" id="card-category"></span>
+          <div class="card-word" id="card-front-text"></div>
+          <div class="card-hint">kartı çevirmek için tıkla</div>
+        </div>
+        <div class="card-face card-back-face">
+          <span class="card-category" id="card-category-back"></span>
+          <div class="card-translation" id="card-back-text"></div>
+          <div class="card-notes" id="card-notes"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-hint">veya <span class="key">Space</span> ile çevir</div>
+
+    <!-- Buttons -->
+    <div class="btn-group" id="action-buttons" style="display:none">
+      <button class="btn btn-review" onclick="handleReview()">↩ Tekrar</button>
+      <button class="btn btn-know" onclick="handleKnow()">✓ Biliyorum</button>
+      <button class="btn btn-reset" onclick="resetSession()" title="Sıfırla">↺</button>
+    </div>
+
+    <!-- Completion -->
+    <div class="completion" id="completion">
+      <div class="completion-emoji">🎉</div>
+      <div class="completion-title">Tur tamamlandı!</div>
+      <div class="completion-sub" id="completion-sub"></div>
+      <button class="btn btn-know" style="max-width:200px" onclick="resetSession()">Yeniden Başla</button>
+    </div>
+
+    <!-- Keyboard hints -->
+    <div class="keyboard-hints">
+      <span><span class="key">←</span> Tekrar</span>
+      <span><span class="key">→</span> Biliyorum</span>
+      <span><span class="key">Space</span> Çevir</span>
+    </div>
+
+  </div><!-- /flashcard-renderer -->
+
+</main>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const REGISTRY_ID = '1naAOAgr6aoqe6VgvQZr4CMlPhAhB5BY14oh86y0GUKY';
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function gvizUrl(sheetId, tabName, query = 'SELECT *') {
+  const base = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq`;
+  const params = new URLSearchParams({ tq: query, headers: 1 });
+  if (tabName) params.set('sheet', tabName);
+  return `${base}?${params}`;
+}
+
+async function fetchSheet(sheetId, tabName) {
+  const url = gvizUrl(sheetId, tabName);
+  const res = await fetch(url);
+  const text = await res.text();
+  const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+  if (json.status === 'error') throw new Error(json.errors?.[0]?.message || 'Sheet error');
+
+  const cols = json.table.cols.map(c => c.label);
+  const rows = json.table.rows.map(r =>
+    Object.fromEntries(cols.map((c, i) => [c, r.c[i]?.v ?? '']))
+  );
+  return rows;
+}
+
+function getParam(key) {
+  return new URLSearchParams(window.location.search).get(key);
+}
+
+function showError(msg) {
+  document.getElementById('loading').style.display = 'none';
+  const el = document.getElementById('error');
+  el.style.display = 'block';
+  el.textContent = '⚠ ' + msg;
+}
+
+// ═══════════════════════════════════════════
+// FLASHCARD STATE
+// ═══════════════════════════════════════════
+let allCards = [];
+let filteredCards = [];
+let queue = [];
+let currentIndex = 0;
+let isFlipped = false;
+let knowCount = 0;
+let reviewCount = 0;
+let activeCategory = 'all';
+
+function initFlashcards(data) {
+  allCards = data.filter(r => r.front);
+
+  // categories
+  const cats = ['all', ...new Set(allCards.map(r => r.category).filter(Boolean))];
+  const filterEl = document.getElementById('category-filters');
+  filterEl.innerHTML = cats.map(c =>
+    `<button class="filter-btn ${c === 'all' ? 'active' : ''}" onclick="setCategory('${c}')">${c === 'all' ? 'Tümü' : c}</button>`
+  ).join('');
+
+  document.getElementById('stat-total').textContent = allCards.length;
+  setCategory('all');
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === (cat === 'all' ? 'Tümü' : cat));
+  });
+  filteredCards = cat === 'all' ? [...allCards] : allCards.filter(r => r.category === cat);
+  resetSession();
+}
+
+function resetSession() {
+  queue = shuffle([...filteredCards]);
+  currentIndex = 0;
+  knowCount = 0;
+  reviewCount = 0;
+  isFlipped = false;
+  document.getElementById('completion').style.display = 'none';
+  document.getElementById('card-scene').style.display = 'block';
+  document.getElementById('action-buttons').style.display = 'none';
+  updateStats();
+  showCard();
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function showCard() {
+  if (currentIndex >= queue.length) {
+    showCompletion();
+    return;
+  }
+  const card = queue[currentIndex];
+  document.getElementById('card-front-text').textContent = card.front;
+  document.getElementById('card-back-text').textContent = card.back;
+  document.getElementById('card-notes').textContent = card.notes || '';
+  document.getElementById('card-category').textContent = card.category || '';
+  document.getElementById('card-category-back').textContent = card.category || '';
+
+  isFlipped = false;
+  document.getElementById('card-inner').classList.remove('flipped');
+  document.getElementById('action-buttons').style.display = 'none';
+
+  updateProgress();
+}
+
+function flipCard() {
+  if (currentIndex >= queue.length) return;
+  isFlipped = !isFlipped;
+  document.getElementById('card-inner').classList.toggle('flipped', isFlipped);
+  document.getElementById('action-buttons').style.display = isFlipped ? 'flex' : 'none';
+}
+
+function handleKnow() {
+  knowCount++;
+  currentIndex++;
+  updateStats();
+  showCard();
+}
+
+function handleReview() {
+  reviewCount++;
+  const card = queue.splice(currentIndex, 1)[0];
+  const insertAt = currentIndex + Math.floor(Math.random() * 3) + 2;
+  queue.splice(Math.min(insertAt, queue.length), 0, card);
+  updateStats();
+  showCard();
+}
+
+function updateProgress() {
+  const total = queue.length;
+  const done = currentIndex;
+  const pct = total ? (done / total) * 100 : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${done} / ${total}`;
+}
+
+function updateStats() {
+  document.getElementById('stat-know').textContent = knowCount;
+  document.getElementById('stat-review').textContent = reviewCount;
+  document.getElementById('stat-total').textContent = filteredCards.length;
+  updateProgress();
+}
+
+function showCompletion() {
+  document.getElementById('card-scene').style.display = 'none';
+  document.getElementById('action-buttons').style.display = 'none';
+  const comp = document.getElementById('completion');
+  comp.style.display = 'flex';
+  document.getElementById('completion-sub').textContent =
+    `${knowCount} bildin · ${reviewCount} tekrar işaretledin`;
+}
+
+// ═══════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    flipCard();
+  }
+  if (!isFlipped) return;
+  if (e.key === 'ArrowRight') handleKnow();
+  if (e.key === 'ArrowLeft') handleReview();
+});
+
+// ═══════════════════════════════════════════
+// RENDERERS MAP
+// ═══════════════════════════════════════════
+const RENDERERS = {
+  flashcards: (data) => {
+    document.getElementById('flashcard-renderer').style.display = 'flex';
+    initFlashcards(data);
+  },
+  flashcards1: (data) => {  // registry'de flashcards1 yazıyor
+    document.getElementById('flashcard-renderer').style.display = 'flex';
+    initFlashcards(data);
+  }
+};
+
+// ═══════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════
+async function boot() {
+  const toolId = getParam('tool') || 'dil_v1';
+
+  try {
+    // 1. Registry'den tool tanımını çek
+    const tools = await fetchSheet(REGISTRY_ID, 'tools');
+    const tool = tools.find(t => t.tool_id === toolId);
+    if (!tool) throw new Error(`"${toolId}" bulunamadı`);
+
+    // 2. Header güncelle
+    document.getElementById('tool-title').textContent = tool.title || toolId;
+    document.getElementById('tool-type-badge').textContent = tool.type;
+    document.title = tool.title || toolId;
+
+    // 3. Araç verisini çek
+    const data = await fetchSheet(tool.sheet_id, tool.tab_name || 'Sheet1');
+
+    // 4. Loading gizle
+    document.getElementById('loading').style.display = 'none';
+
+    // 5. Renderer çalıştır
+    const renderer = RENDERERS[tool.type];
+    if (!renderer) throw new Error(`"${tool.type}" renderer tanımlı değil`);
+    renderer(data);
+
+  } catch (err) {
+    showError(err.message);
+    console.error(err);
+  }
+}
+
+boot();
+</script>
+</body>
+</html>
