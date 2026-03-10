@@ -493,6 +493,272 @@
     font-size: 13px;
   }
 
+  /* ── GRID RENDERER ── */
+  #grid-renderer {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    max-width: 960px;
+    gap: 24px;
+    padding: 40px 20px;
+  }
+
+  .grid-toolbar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .grid-search {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .grid-search:focus { border-color: var(--accent); }
+  .grid-search::placeholder { color: var(--muted); }
+
+  .grid-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .grid-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.15s, transform 0.15s;
+    cursor: default;
+  }
+
+  .grid-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .grid-card-title {
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .grid-card-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .grid-card-detail {
+    font-size: 13px;
+    color: #aaa;
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+
+  .grid-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .grid-tag {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 8px;
+    color: var(--muted);
+  }
+
+  .grid-empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  /* ── CHECKLIST RENDERER ── */
+  #checklist-renderer {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    max-width: 680px;
+    gap: 24px;
+    padding: 40px 20px;
+  }
+
+  .checklist-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .checklist-progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .checklist-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .checklist-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .checklist-progress-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .checklist-reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .checklist-reset-btn:hover { color: var(--text); border-color: var(--muted); }
+
+  .checklist-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .checklist-group-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 12px 0 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface);
+    margin-bottom: 4px;
+  }
+
+  .checklist-item:hover { border-color: var(--border); }
+
+  .checklist-item.checked {
+    opacity: 0.45;
+    background: transparent;
+    border-color: var(--border);
+  }
+
+  .checklist-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .checklist-item.checked .checklist-checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .checklist-item.checked .checklist-checkbox::after {
+    content: '✓';
+    font-size: 12px;
+    color: #0f0f0f;
+    font-weight: 800;
+  }
+
+  .checklist-text {
+    flex: 1;
+  }
+
+  .checklist-item-name {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .checklist-item.checked .checklist-item-name {
+    text-decoration: line-through;
+  }
+
+  .checklist-item-notes {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 3px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .checklist-item-priority {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .checklist-item-priority.high { color: var(--accent2); border-color: var(--accent2); }
+  .checklist-item-priority.medium { color: var(--accent); border-color: #555; }
+
   /* Keyboard hint */
   .keyboard-hints {
     display: flex;
@@ -544,6 +810,29 @@
         <tbody id="table-body"></tbody>
       </table>
     </div>
+  </div>
+
+  <!-- GRID RENDERER -->
+  <div id="grid-renderer">
+    <div class="grid-toolbar">
+      <input class="grid-search" id="grid-search" type="text" placeholder="Ara...">
+    </div>
+    <div class="grid-filters" id="grid-filters"></div>
+    <div class="grid-cards" id="grid-cards"></div>
+  </div>
+
+  <!-- CHECKLIST RENDERER -->
+  <div id="checklist-renderer">
+    <div class="checklist-header">
+      <div class="checklist-progress-wrap">
+        <div class="checklist-progress-bar">
+          <div class="checklist-progress-fill" id="checklist-fill"></div>
+        </div>
+        <span class="checklist-progress-text" id="checklist-progress-text"></span>
+      </div>
+      <button class="checklist-reset-btn" onclick="resetChecklist()">↺ Sıfırla</button>
+    </div>
+    <div id="checklist-body"></div>
   </div>
 
   <!-- FLASHCARD RENDERER -->
@@ -863,19 +1152,141 @@ function tableSort(col) {
 }
 
 // ═══════════════════════════════════════════
+// GRID RENDERER
+// ═══════════════════════════════════════════
+let gridData = [];
+let gridActiveTag = 'all';
+
+function initGrid(data) {
+  if (!data.length) { showError('Grid veride veri yok'); return; }
+  gridData = data;
+
+  // Tag filtresi
+  const allTags = new Set();
+  data.forEach(r => {
+    if (r.tags) r.tags.split(',').map(t => t.trim()).forEach(t => allTags.add(t));
+  });
+
+  const filterEl = document.getElementById('grid-filters');
+  if (allTags.size) {
+    filterEl.innerHTML = ['all', ...allTags].map(t =>
+      `<button class="filter-btn ${t === 'all' ? 'active' : ''}" onclick="setGridTag('${t}')">${t === 'all' ? 'Tümü' : t}</button>`
+    ).join('');
+  }
+
+  document.getElementById('grid-search').addEventListener('input', e => renderGrid(e.target.value.toLowerCase()));
+
+  renderGrid('');
+  document.getElementById('grid-renderer').style.display = 'flex';
+}
+
+function setGridTag(tag) {
+  gridActiveTag = tag;
+  document.querySelectorAll('#grid-filters .filter-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === (tag === 'all' ? 'Tümü' : tag));
+  });
+  renderGrid(document.getElementById('grid-search').value.toLowerCase());
+}
+
+function renderGrid(search) {
+  let rows = gridData.filter(r => {
+    const matchSearch = !search || Object.values(r).some(v => String(v).toLowerCase().includes(search));
+    const matchTag = gridActiveTag === 'all' || (r.tags || '').split(',').map(t => t.trim()).includes(gridActiveTag);
+    return matchSearch && matchTag;
+  });
+
+  const container = document.getElementById('grid-cards');
+  if (!rows.length) {
+    container.innerHTML = `<div class="grid-empty">Sonuç bulunamadı</div>`;
+    return;
+  }
+
+  container.innerHTML = rows.map(r => `
+    <div class="grid-card">
+      <div class="grid-card-title">${r.title || r.name || '—'}</div>
+      ${r.subtitle ? `<div class="grid-card-subtitle">${r.subtitle}</div>` : ''}
+      ${r.detail ? `<div class="grid-card-detail">${r.detail}</div>` : ''}
+      ${r.tags ? `<div class="grid-card-tags">${r.tags.split(',').map(t => `<span class="grid-tag">${t.trim()}</span>`).join('')}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════
+// CHECKLIST RENDERER
+// ═══════════════════════════════════════════
+let checklistData = [];
+let checklistState = {};
+
+function initChecklist(data) {
+  if (!data.length) { showError('Checklist verisi yok'); return; }
+  checklistData = data.filter(r => r.item);
+  checklistState = {};
+  checklistData.forEach((r, i) => { checklistState[i] = false; });
+  renderChecklist();
+  document.getElementById('checklist-renderer').style.display = 'flex';
+}
+
+function renderChecklist() {
+  const body = document.getElementById('checklist-body');
+  const groups = {};
+
+  checklistData.forEach((r, i) => {
+    const cat = r.category || 'Genel';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push({ ...r, _idx: i });
+  });
+
+  body.innerHTML = Object.entries(groups).map(([cat, items]) => `
+    <div class="checklist-group">
+      <div class="checklist-group-label">${cat}</div>
+      ${items.map(r => `
+        <div class="checklist-item ${checklistState[r._idx] ? 'checked' : ''}" onclick="toggleCheck(${r._idx})">
+          <div class="checklist-checkbox"></div>
+          <div class="checklist-text">
+            <div class="checklist-item-name">${r.item}</div>
+            ${r.notes ? `<div class="checklist-item-notes">${r.notes}</div>` : ''}
+          </div>
+          ${r.priority ? `<span class="checklist-item-priority ${r.priority === 'yüksek' || r.priority === 'high' ? 'high' : r.priority === 'orta' || r.priority === 'medium' ? 'medium' : ''}">${r.priority}</span>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  updateChecklistProgress();
+}
+
+function toggleCheck(idx) {
+  checklistState[idx] = !checklistState[idx];
+  renderChecklist();
+}
+
+function resetChecklist() {
+  checklistData.forEach((_, i) => { checklistState[i] = false; });
+  renderChecklist();
+}
+
+function updateChecklistProgress() {
+  const total = checklistData.length;
+  const done = Object.values(checklistState).filter(Boolean).length;
+  const pct = total ? (done / total) * 100 : 0;
+  document.getElementById('checklist-fill').style.width = pct + '%';
+  document.getElementById('checklist-progress-text').textContent = `${done} / ${total} tamamlandı`;
+}
+
+// ═══════════════════════════════════════════
 // RENDERERS MAP
 // ═══════════════════════════════════════════
 const RENDERERS = {
-  flashcards: (data) => {
-    document.getElementById('flashcard-renderer').style.display = 'flex';
-    initFlashcards(data);
-  },
-  flashcards1: (data) => {
-    document.getElementById('flashcard-renderer').style.display = 'flex';
-    initFlashcards(data);
-  },
-  table: (data) => initTable(data),
+  // FLASHCARDS
+  flashcards:  (data) => { document.getElementById('flashcard-renderer').style.display = 'flex'; initFlashcards(data); },
+  flashcards1: (data) => { document.getElementById('flashcard-renderer').style.display = 'flex'; initFlashcards(data); },
+  // TABLE
+  table:  (data) => initTable(data),
   table2: (data) => initTable(data),
+  // GRID
+  grid:   (data) => initGrid(data),
+  // CHECKLIST
+  checklist: (data) => initChecklist(data),
 };
 
 // ═══════════════════════════════════════════
